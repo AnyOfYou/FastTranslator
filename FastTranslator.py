@@ -27,6 +27,7 @@ jsonStr = json.dumps(jsonDict, ensure_ascii=False,sort_keys=True,indent=4, separ
 
 translation = jsonDict['translation'][0].encode('utf-8')
 print translation
+os.popen('echo ' + translation + " | " + "pbcopy")
 #script = "osascript -e " + "\'display notification " + "\"" + translation + "\"" + " with title " + "\"" + word + "\"" + "\'"
 script = "terminal-notifier -title FastTranslator " + "-subtitle " + "\"" + word + "\"" + " -message " + "\"" + translation + "\"" + " -sender " + "\"com.googlecode.iterm2\""
 #print script
