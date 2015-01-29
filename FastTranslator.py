@@ -1,7 +1,24 @@
-import requests,sys,json,os
+import requests,sys,json,os,StringIO
 
 #reload(sys)
 #sys.setdefaultencoding('utf-8')
+
+BLACK, RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, WHITE = range(8)
+
+def format(fg=None, bg=None, bright=False, bold=False, dim=False, reset=False):
+    # manually derived from http://en.wikipedia.org/wiki/ANSI_escape_code#Codes
+    codes = []
+    if reset: codes.append("0")
+    else:
+        if not fg is None: codes.append("3%d" % (fg))
+        #if not fg is None: codes.append("38;5;100")
+        if not bg is None:
+            if not bright: codes.append("4%d" % (bg))
+            else: codes.append("10%d" % (bg))
+        if bold: codes.append("1")
+        elif dim: codes.append("2")
+        else: codes.append("22")
+    return "\033[%sm" % (";".join(codes))
 
 def is_chinese(uchar):
 	if uchar >= u'\u4e00' and uchar<=u'\u9fa5':
@@ -26,7 +43,10 @@ jsonStr = json.dumps(jsonDict, ensure_ascii=False,sort_keys=True,indent=4, separ
 #print jsonStr
 
 translation = jsonDict['translation'][0].encode('utf-8')
-print translation
+linebuf = StringIO.StringIO()
+linebuf.write("%s%s%s " % (format(fg=MAGENTA,bg=None,bright=True), translation, format(reset=True)))
+line = linebuf.getvalue()
+print line
 os.popen('echo ' + translation + " | " + "pbcopy")
 #script = "osascript -e " + "\'display notification " + "\"" + translation + "\"" + " with title " + "\"" + word + "\"" + "\'"
 script = "terminal-notifier -title FastTranslator " + "-subtitle " + "\"" + word + "\"" + " -message " + "\"" + translation + "\"" + " -sender " + "\"com.googlecode.iterm2\""
@@ -34,8 +54,11 @@ script = "terminal-notifier -title FastTranslator " + "-subtitle " + "\"" + word
 os.popen(script)
 
 try:
-	phonetic = jsonDict['basic']['phonetic']	
-	print phonetic.encode('utf-8')
+	phonetic = jsonDict['basic']['phonetic']
+	linebuf = StringIO.StringIO()
+	linebuf.write("%s%s%s " % (format(fg=YELLOW,bg=None,bright=True), phonetic.encode('utf-8'), format(reset=True)))
+	print linebuf.getvalue()
+	#print phonetic.encode('utf-8')
 except:
 	pass
 
