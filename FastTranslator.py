@@ -1,4 +1,6 @@
+# coding=utf-8
 import requests,sys,json,os,StringIO
+
 
 #reload(sys)
 #sys.setdefaultencoding('utf-8')
@@ -35,9 +37,11 @@ def translate(word):
 	#print r.text
 	jsonDict = json.loads(r.text)
 	jsonStr = json.dumps(jsonDict, ensure_ascii=False,sort_keys=True,indent=4, separators=(',', ': '))
-	#print jsonStr
-
-	translation = jsonDict['translation'][0].encode('utf-8')
+	# print jsonStr
+	try:
+		translation = jsonDict['translation'][0].encode('utf-8')
+	except:
+		translation = ''
 	linebuf = StringIO.StringIO()
 	linebuf.write("%s%s%s " % (format(fg=MAGENTA,bg=None,bright=True), translation, format(reset=True)))
 	line = linebuf.getvalue()
