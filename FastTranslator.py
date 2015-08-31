@@ -68,9 +68,9 @@ def translate(word):
 
 	if is_chinese(unicode(word,'utf-8')):
 		if not is_chinese (unicode(translation,'utf-8')):
-			os.popen('say ' + translation)
+			os.popen('say ' + '"' + translation + '"')
 	else:
-		os.popen('say ' + word)
+		os.popen('say ' + '"' + word + '"')
 
 try:
 	word = sys.argv[1]
