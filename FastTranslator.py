@@ -80,7 +80,8 @@ except IndexError:
 	try:
 		while True:
 			word = raw_input()
-			translate(word)
-			print '\n'
+			if word !='':
+				translate(word)
+				print '\n'
 	except:
 		pass
