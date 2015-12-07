@@ -28,13 +28,22 @@ def is_chinese(uchar):
 	else:
 		return False
 
+def list_to_str(list):
+	s = ""
+	for i in list:
+		if s =="":
+			s = i
+		else:
+			s = s + " " + i
+	return s
+
 KEYFROM = 'YDTranslateTest'
 APIKEY = '1826356811'
 
 def translate(word):
 	r = requests.get('http://fanyi.youdao.com/openapi.do?keyfrom=' + KEYFROM +
 	'&key=' + APIKEY + '&type=data&doctype=json&version=1.1&q=' + word)
-	#print r.text
+	# print r.text
 	jsonDict = json.loads(r.text)
 	jsonStr = json.dumps(jsonDict, ensure_ascii=False,sort_keys=True,indent=4, separators=(',', ': '))
 	# print jsonStr
@@ -72,10 +81,12 @@ def translate(word):
 	else:
 		os.popen('say ' + '"' + word + '"')
 
-try:
-	word = sys.argv[1]
-	translate(word)
-except IndexError:
+
+
+wordlist = sys.argv[1:]
+if len(wordlist) != 0:
+	translate(list_to_str(wordlist))
+else:
 	print 'Enter text to translate, Ctrl-D to exit.\n'
 	try:
 		while True:
