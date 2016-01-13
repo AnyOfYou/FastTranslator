@@ -1,5 +1,5 @@
 # coding=utf-8
-import requests,sys,json,os,StringIO
+import requests,sys,json,os,StringIO,readline
 
 
 #reload(sys)
