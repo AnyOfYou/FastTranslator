@@ -57,9 +57,11 @@ def translate(word):
 	print line
 	# os.popen('echo ' + translation + " | " + "pbcopy")
 	#script = "osascript -e " + "\'display notification " + "\"" + translation + "\"" + " with title " + "\"" + word + "\"" + "\'"
-	script = "reattach-to-user-namespace terminal-notifier -title FastTranslator " + "-subtitle " + "\"" + word + "\"" + " -message " + "\"" + translation + "\"" + " -sender " + "\"com.googlecode.iterm2\""
-	#print script
-	os.popen(script)
+	cmd_exists = lambda x: any(os.access(os.path.join(path, x), os.X_OK) for path in os.environ["PATH"].split(os.pathsep))
+	if cmd_exists("terminal-notifier") and cmd_exists("reattach-to-user-namespace") :
+		script = "reattach-to-user-namespace terminal-notifier -title FastTranslator " + "-subtitle " + "\"" + word + "\"" + " -message " + "\"" + translation + "\"" + " -sender " + "\"com.googlecode.iterm2\""
+		#print script
+		os.popen(script)
 	try:
 		phonetic = jsonDict['basic']['phonetic']
 		linebuf = StringIO.StringIO()
