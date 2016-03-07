@@ -96,5 +96,5 @@ else:
 			if word !='':
 				translate(word)
 				print '\n'
-	except:
+	except KeyboardInterrupt:
 		pass
