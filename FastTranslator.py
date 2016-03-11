@@ -98,3 +98,5 @@ else:
 				print '\n'
 	except KeyboardInterrupt:
 		pass
+	except EOFError:
+		pass
