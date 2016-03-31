@@ -56,10 +56,11 @@ def translate(word):
 	line = linebuf.getvalue()
 	print line
 	# os.popen('echo ' + translation + " | " + "pbcopy")
+	os.popen('echo ' + translation + " > /tmp/FastTranslator.last")
 	#script = "osascript -e " + "\'display notification " + "\"" + translation + "\"" + " with title " + "\"" + word + "\"" + "\'"
 	cmd_exists = lambda x: any(os.access(os.path.join(path, x), os.X_OK) for path in os.environ["PATH"].split(os.pathsep))
 	if cmd_exists("terminal-notifier") and cmd_exists("reattach-to-user-namespace") :
-		script = "reattach-to-user-namespace terminal-notifier -title FastTranslator " + "-subtitle " + "\"" + word + "\"" + " -message " + "\"" + translation + "\"" + " -sender " + "\"com.googlecode.iterm2\""
+		script = "terminal-notifier -title FastTranslator " + "-subtitle " + "\"" + word + "\"" + " -message " + "\"" + translation + "\"" + " -sender " + "\"com.googlecode.iterm2\""
 		#print script
 		os.popen(script)
 	try:
@@ -87,7 +88,12 @@ def translate(word):
 
 wordlist = sys.argv[1:]
 if len(wordlist) != 0:
-	translate(list_to_str(wordlist))
+	if ''.join(wordlist) == '-c':
+		last = os.popen('cat /tmp/FastTranslator.last').read()
+		os.popen('cat /tmp/FastTranslator.last | tr -d "\n" | pbcopy')
+		print 'copied ' + last
+	else:
+		translate(list_to_str(wordlist))
 else:
 	print 'Enter text to translate, Ctrl-D to exit.\n'
 	try:
