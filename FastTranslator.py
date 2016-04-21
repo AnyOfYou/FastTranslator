@@ -56,7 +56,7 @@ def translate(word):
 	line = linebuf.getvalue()
 	print line
 	# os.popen('echo ' + translation + " | " + "pbcopy")
-	os.popen('echo ' + translation + " > /tmp/FastTranslator.last")
+	os.popen('echo ' + '"' + translation + '"' + " > /tmp/FastTranslator.last")
 	#script = "osascript -e " + "\'display notification " + "\"" + translation + "\"" + " with title " + "\"" + word + "\"" + "\'"
 	cmd_exists = lambda x: any(os.access(os.path.join(path, x), os.X_OK) for path in os.environ["PATH"].split(os.pathsep))
 	if cmd_exists("terminal-notifier") and cmd_exists("reattach-to-user-namespace") :
