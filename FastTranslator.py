@@ -47,6 +47,9 @@ def copy_last_result(need_print):
 
 
 def translate(word):
+    if args.only_say:
+        os.popen('say ' + '"' + word + '"')
+        return
     r = requests.get('http://fanyi.youdao.com/openapi.do?keyfrom=' + KEY_FROM +
                      '&key=' + API_KEY + '&type=data&doctype=json&version=1.1&q=' + word)
     # print r.text
@@ -114,6 +117,7 @@ parser.add_argument('-n', "--noti", help="show notification, need terminal-notif
 parser.add_argument('-d', "--debug", help="debug mode", action="store_true")
 parser.add_argument('-v', "--verbose", help="verbose output", action="store_true")
 parser.add_argument('-s', "--say", help="say the result", action="store_true")
+parser.add_argument('-o', "--only-say", help="only say the word", action="store_true")
 parser.add_argument("text",help="translated words, empty to enter interactive mode", nargs='*')
 args = parser.parse_args()
 # print args.verbose
