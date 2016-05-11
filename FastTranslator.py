@@ -118,7 +118,7 @@ parser.add_argument('-d', "--debug", help="debug mode", action="store_true")
 parser.add_argument('-v', "--verbose", help="verbose output", action="store_true")
 parser.add_argument('-s', "--say", help="say the result", action="store_true")
 parser.add_argument('-o', "--only-say", help="only say the word", action="store_true")
-parser.add_argument("text",help="translated words, empty to enter interactive mode", nargs='*')
+parser.add_argument("text", help="translated words, empty to enter interactive mode", nargs='*')
 args = parser.parse_args()
 # print args.verbose
 wordlist = ' '.join(args.text)
