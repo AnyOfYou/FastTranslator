@@ -1,5 +1,5 @@
 # coding=utf-8
-import requests, sys, json, os, StringIO, readline, argparse
+import requests, sys, json, os, StringIO, readline, argparse, ConfigParser
 
 # reload(sys)
 # sys.setdefaultencoding('utf-8')
@@ -101,13 +101,25 @@ def translate(word):
                 print w['key'].encode('utf-8') + '\t' + w['value'][0].encode('utf-8')
         except:
             pass
-    if args.say:
+    global config_say
+    if args.say or config_say:
         if is_chinese(unicode(word, 'utf-8')):
             if not is_chinese(unicode(translation, 'utf-8')):
                 os.popen('say ' + '"' + translation + '"')
         else:
             os.popen('say ' + '"' + word + '"')
 
+
+
+config_say = False
+config = ConfigParser.ConfigParser()
+config.read('.config')
+#  print(config.sections())
+try:
+    if config.getboolean('Default', 'Say'):
+        config_say = True
+except:
+    pass
 
 parser = argparse.ArgumentParser(description='Fast Translator')
 parser.add_argument('-c', "--copy", help="copy translate result to clipboard", action="store_true")
