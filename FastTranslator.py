@@ -110,10 +110,9 @@ def translate(word):
             os.popen('say ' + '"' + word + '"')
 
 
-
 config_say = False
 config = ConfigParser.ConfigParser()
-config.read('.config')
+config.read(os.path.join(os.path.dirname(os.path.realpath(__file__)), '.config'))
 #  print(config.sections())
 try:
     if config.getboolean('Default', 'Say'):
