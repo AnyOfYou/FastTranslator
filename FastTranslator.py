@@ -53,7 +53,11 @@ def translate(word):
     r = requests.get('http://fanyi.youdao.com/openapi.do?keyfrom=' + KEY_FROM +
                      '&key=' + API_KEY + '&type=data&doctype=json&version=1.1&q=' + word)
     # print r.text
-    json_dict = json.loads(r.text)
+    try:
+        json_dict = json.loads(r.text)
+    except:
+        print('Error')
+        return
     jsonStr = json.dumps(json_dict, ensure_ascii=False, sort_keys=True, indent=4, separators=(',', ': '))
     if args.debug:
         print '-' * 5
