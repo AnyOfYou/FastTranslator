@@ -1,5 +1,18 @@
 # coding=utf-8
-import requests, sys, json, os, StringIO, readline, argparse, ConfigParser
+
+import argparse
+import json
+import os
+import readline
+import requests
+import sys
+
+try:
+    from StringIO import StringIO
+    import ConfigParser
+except ImportError:
+    from io import StringIO
+    import configparser
 
 # reload(sys)
 # sys.setdefaultencoding('utf-8')
@@ -11,14 +24,16 @@ BLACK, RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, WHITE = range(8)
 
 
 def format(fg=None, bg=None, bright=False, bold=False, dim=False, reset=False):
-    # manually derived from http://en.wikipedia.org/wiki/ANSI_escape_code#Codes
+    # Manually derived from http://en.wikipedia.org/wiki/ANSI_escape_code#Codes
     codes = []
     if reset:
         codes.append("0")
     else:
-        if not fg is None: codes.append("3%d" % (fg))
-        # if not fg is None: codes.append("38;5;100")
-        if not bg is None:
+        if fg is not None:
+            codes.append("3%d" % (fg))
+        # if fg is not None:
+        #     codes.append("38;5;100")
+        if bg is not None:
             if not bright:
                 codes.append("4%d" % (bg))
             else:
@@ -33,7 +48,7 @@ def format(fg=None, bg=None, bright=False, bold=False, dim=False, reset=False):
 
 
 def is_chinese(uchar):
-    if uchar >= u'\u4e00' and uchar <= u'\u9fa5':
+    if u'\u4e00' <= uchar <= u'\u9fa5':
         return True
     else:
         return False
@@ -43,7 +58,13 @@ def copy_last_result(need_print):
     last = os.popen('cat /tmp/FastTranslator.last').read()
     os.popen('cat /tmp/FastTranslator.last | tr -d "\n" | pbcopy')
     if need_print:
-        print 'copied ' + last
+        print('copied ' + last)
+
+
+def to_str(text):
+    if not isinstance(text, str):
+        text = text.encode('utf-8')
+    return text
 
 
 def translate(word):
@@ -52,26 +73,26 @@ def translate(word):
         return
     r = requests.get('http://fanyi.youdao.com/openapi.do?keyfrom=' + KEY_FROM +
                      '&key=' + API_KEY + '&type=data&doctype=json&version=1.1&q=' + word)
-    # print r.text
+    # print(r.text)
     try:
         json_dict = json.loads(r.text)
     except:
         print('Error')
         return
-    jsonStr = json.dumps(json_dict, ensure_ascii=False, sort_keys=True, indent=4, separators=(',', ': '))
+    json_str = json.dumps(json_dict, ensure_ascii=False, sort_keys=True, indent=4, separators=(',', ': '))
     if args.debug:
-        print '-' * 5
-        print jsonStr
-        print '-' * 5
+        print('-' * 5)
+        print(json_str)
+        print('-' * 5)
     try:
-        translation = json_dict['translation'][0].encode('utf-8')
+        translation = to_str(json_dict['translation'][0])
     except:
         translation = ''
-    linebuf = StringIO.StringIO()
-    linebuf.write("%s%s%s " % (format(fg=MAGENTA, bg=None, bright=True), translation, format(reset=True)))
-    line = linebuf.getvalue()
-    print line
-    os.popen('echo ' + '"' + translation + '"' + " > /tmp/FastTranslator.last")
+    line_buf = StringIO()
+    line_buf.write("%s%s%s " % (format(fg=MAGENTA, bg=None, bright=True), translation, format(reset=True)))
+    line = line_buf.getvalue()
+    print(line)
+    os.popen('echo ' + '"' + str(translation) + '"' + " > /tmp/FastTranslator.last")
     if args.copy:
         copy_last_result(False)
     # script = "osascript -e " + "\'display notification " + "\"" + translation + "\"" + " with title " + "\"" + word + "\"" + "\'"
@@ -80,44 +101,53 @@ def translate(word):
     if cmd_exists("terminal-notifier") and cmd_exists("reattach-to-user-namespace"):
         if args.noti:
             script = "terminal-notifier -title FastTranslator " + "-subtitle " + "\"" + word + "\"" + " -message " + "\"" + translation + "\"" + " -sender " + "\"com.googlecode.iterm2\""
-            # print script
+            # print(script)
             os.popen(script)
     try:
-        phonetic = json_dict['basic']['phonetic']
-        linebuf = StringIO.StringIO()
-        linebuf.write(
-            "%s%s%s " % (format(fg=YELLOW, bg=None, bright=True), phonetic.encode('utf-8'), format(reset=True)))
-        print linebuf.getvalue()
-    # print phonetic.encode('utf-8')
+        phonetic = to_str(json_dict['basic']['phonetic'])
+        line_buf = StringIO()
+        line_buf.write(
+            "%s%s%s " % (format(fg=YELLOW, bg=None, bright=True), phonetic, format(reset=True)))
+        print(line_buf.getvalue())
+    # print(to_str(phonetic))
     except:
         pass
     try:
         explains = json_dict['basic']['explains']
         for e in explains:
-            print e.encode('utf-8')
+            print(to_str(e))
     except:
         pass
     if args.verbose:
         try:
             web_result = json_dict['web']
-            print
+            print("")
             for w in web_result:
-                print w['key'].encode('utf-8') + '\t' + w['value'][0].encode('utf-8')
+                print(to_str(w['key']) + ' - ' + to_str(w['value'][0]))
         except:
             pass
     global config_say
     if args.say or config_say:
-        if is_chinese(unicode(word, 'utf-8')):
-            if not is_chinese(unicode(translation, 'utf-8')):
+        if sys.version_info[0] >= 3:
+            x_word = str(word)
+            x_translation = str(translation)
+        else:
+            x_word = unicode(word, "utf-8")
+            x_translation = unicode(translation, "utf-8")
+        if is_chinese(x_word):
+            if not is_chinese(x_translation):
                 os.popen('say ' + '"' + translation + '"')
         else:
             os.popen('say ' + '"' + word + '"')
 
 
 config_say = False
-config = ConfigParser.ConfigParser()
+try:
+    config = ConfigParser.ConfigParser()
+except NameError:
+    config = configparser.ConfigParser()
 config.read(os.path.join(os.path.dirname(os.path.realpath(__file__)), '.config'))
-#  print(config.sections())
+# print(config.sections())
 try:
     if config.getboolean('Default', 'Say'):
         config_say = True
@@ -135,24 +165,27 @@ parser.add_argument('-s', "--say", help="say the result", action="store_true")
 parser.add_argument('-o', "--only-say", help="only say the word", action="store_true")
 parser.add_argument("text", help="translated words, empty to enter interactive mode", nargs='*')
 args = parser.parse_args()
-# print args.verbose
-wordlist = ' '.join(args.text)
-# print wordlist
+# print(args.verbose)
+word = ' '.join(args.text)
+# print(word)
 
-# wordlist = sys.argv[1:]
+# word = sys.argv[1:]
 if args.copy_last:
     copy_last_result(True)
 else:
-    if len(wordlist) != 0:
-        translate(wordlist)
+    if len(word) != 0:
+        translate(word)
     else:
-        print 'Enter text to translate, Ctrl-D to exit.\n'
+        print('Enter text to translate, Ctrl-D to exit.\n')
         try:
             while True:
-                word = raw_input()
+                try:
+                    word = raw_input()
+                except NameError:
+                    word = input()
                 if word != '':
                     translate(word)
-                    print '\n'
+                    print('\n')
         except KeyboardInterrupt:
             pass
         except EOFError:
