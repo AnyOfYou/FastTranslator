@@ -82,7 +82,7 @@ def copy_last_result(need_print):
     last = os.popen('cat /tmp/FastTranslator.last').read()
     os.popen('cat /tmp/FastTranslator.last | tr -d "\n" | pbcopy')
     if need_print:
-        print('copied ' + last)
+        print('Copied: ' + last)
 
 
 def to_str(text):
