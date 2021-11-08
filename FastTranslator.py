@@ -138,8 +138,10 @@ def translate_youdao(text):
     web_results = []
     try:
         translation = to_str(json_dict['translation'][0])
-        phonetic = to_str(json_dict['basic']['phonetic'])
-        explains = json_dict['basic']['explains']
+        if 'phonetic' in json_dict['basic']:
+            phonetic = to_str(json_dict['basic']['phonetic'])
+        if 'explains' in json_dict['basic']:
+            explains = json_dict['basic']['explains']
         web_results = json_dict['web']
     except:
         pass
