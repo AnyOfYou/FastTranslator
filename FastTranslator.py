@@ -39,6 +39,8 @@ def load_config(args):
                 args.noti = v == 'True'
             elif k == 'Src'.lower():
                 args.src = v
+            elif k == 'Copy'.lower():
+                args.copy = v == 'True'
     except:
         pass
 
