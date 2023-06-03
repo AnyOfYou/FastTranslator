@@ -139,7 +139,10 @@ def translate_youdao(text):
     explains = []
     web_results = []
     try:
-        translation = to_str(json_dict['translation'][0])
+        if 'translation' in json_dict:
+            translation = to_str(json_dict['translation'][0])
+        else:
+            translation =  json_dict['web'][0]['value'][0]
         if 'phonetic' in json_dict['basic']:
             phonetic = to_str(json_dict['basic']['phonetic'])
         if 'explains' in json_dict['basic']:
@@ -217,12 +220,11 @@ def translate(args, text):
 
     if not result or not result[1]:
         print("Error")
+        print("Result: ")
+        print(result)
         return
-    json_dict, translation, phonetic, explains, web_results = result
 
-    if not translation:
-        print("Error")
-        return
+    json_dict, translation, phonetic, explains, web_results = result
 
     if args.debug:
         json_str = json.dumps(json_dict, ensure_ascii=False, sort_keys=True, indent=4, separators=(',', ': '))
