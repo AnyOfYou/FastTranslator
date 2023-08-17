@@ -84,6 +84,10 @@ def is_chinese(uchar):
         return False
 
 
+def is_english(s):
+    return len(s) == len(s.encode())
+
+
 def copy_last_result(need_print):
     last = os.popen('cat /tmp/FastTranslator.last').read()
     os.popen('cat /tmp/FastTranslator.last | tr -d "\n" | pbcopy')
@@ -122,11 +126,12 @@ def send_noti(title, message):
 
 
 def say_result(text, translation):
-    if is_chinese(text):
-        if not is_chinese(translation):
-            os.popen('say ' + '"' + translation + '"')
-    else:
+    if is_english(translation):
+        os.popen('say ' + '"' + translation + '"')
+    elif is_english(text):
         os.popen('say ' + '"' + text + '"')
+    else:
+        pass
 
 
 def yd_add_auth_params(appKey, appSecret, params):
