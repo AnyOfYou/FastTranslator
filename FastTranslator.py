@@ -7,6 +7,9 @@ import readline
 import requests
 import sys
 import time
+import hashlib
+import time
+import uuid
 
 try:
     from StringIO import StringIO
@@ -15,10 +18,11 @@ except ImportError:
     from io import StringIO
     import configparser
 
-YOUDAO_KEY_FROM = 'YDTranslateTest'
-YOUDAO_KEY = '1826356811'
-
-DEEPL_KEY = 'c7a80658-9945-8b08-15ca-a8ce3d7281ac:fx'
+try:
+    import api_config
+except ImportError:
+    print("API config no found, exit")
+    sys.exit(1)
 
 BLACK, RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, WHITE = range(8)
 
@@ -125,13 +129,52 @@ def say_result(text, translation):
         os.popen('say ' + '"' + text + '"')
 
 
+def yd_add_auth_params(appKey, appSecret, params):
+    q = params.get('q')
+    if q is None:
+        q = params.get('img')
+    salt = str(uuid.uuid1())
+    curtime = str(int(time.time()))
+    sign = yd_calculate_sign(appKey, appSecret, q, salt, curtime)
+    params['appKey'] = appKey
+    params['salt'] = salt
+    params['curtime'] = curtime
+    params['signType'] = 'v3'
+    params['sign'] = sign
+
+
+def yd_calculate_sign(appKey, appSecret, q, salt, curtime):
+    strSrc = appKey + yd_get_input(q) + salt + curtime + appSecret
+    return yd_encrypt(strSrc)
+
+
+def yd_encrypt(strSrc):
+    hash_algorithm = hashlib.sha256()
+    hash_algorithm.update(strSrc.encode('utf-8'))
+    return hash_algorithm.hexdigest()
+
+
+def yd_get_input(input):
+    if input is None:
+        return input
+    inputLen = len(input)
+    return input if inputLen <= 20 else input[0:10] + str(inputLen) + input[inputLen - 10:inputLen]
+
+
 def translate_youdao(text):
+    q = text
+    lang_from = 'auto'
+    lang_to = 'auto'
+
+    data = {'q': q, 'from': lang_from, 'to': lang_to}
+    yd_add_auth_params(api_config.YOUDAO_APP_ID, api_config.YOUDAO_APP_KEY, data)
+    header = {'Content-Type': 'application/x-www-form-urlencoded'}
     try:
-        r = requests.get(
-            'http://fanyi.youdao.com/openapi.do?keyfrom=' + YOUDAO_KEY_FROM + '&key=' + YOUDAO_KEY + '&type=data&doctype=json&version=1.1&q=' + text)
-        # print(r.text)
-        json_dict = json.loads(r.text)
-    except:
+        r = requests.post('https://openapi.youdao.com/api', data, header)
+        json_dict = json.loads(r.content)
+
+    except Exception as e:
+        print(e)
         return
 
     translation = ""
@@ -142,7 +185,7 @@ def translate_youdao(text):
         if 'translation' in json_dict:
             translation = to_str(json_dict['translation'][0])
         else:
-            translation =  json_dict['web'][0]['value'][0]
+            translation = json_dict['web'][0]['value'][0]
         if 'phonetic' in json_dict['basic']:
             phonetic = to_str(json_dict['basic']['phonetic'])
         if 'explains' in json_dict['basic']:
@@ -164,7 +207,7 @@ def translate_deepl(text):
             source_lang = 'EN'
         if via_api:
             # Via API
-            data = {'auth_key': DEEPL_KEY, 'text': text, 'target_lang': target_lang}
+            data = {'auth_key': api_config.DEEPL_AUTH_KEY, 'text': text, 'target_lang': target_lang}
             r = requests.post('https://api-free.deepl.com/v2/translate', data=data)
         else:
             headers = {
