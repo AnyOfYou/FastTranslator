@@ -173,7 +173,7 @@ def translate_youdao(text):
 
     data = {'q': q, 'from': lang_from, 'to': lang_to}
     yd_add_auth_params(api_config.YOUDAO_APP_ID, api_config.YOUDAO_APP_KEY, data)
-    header = {'Content-Type': 'application/x-www-form-urlencoded'}
+    header = {'content-type': 'application/x-www-form-urlencoded'}
     try:
         r = requests.post('https://openapi.youdao.com/api', data, header)
         json_dict = json.loads(r.content)
