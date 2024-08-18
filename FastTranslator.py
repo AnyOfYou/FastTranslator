@@ -167,43 +167,92 @@ def yd_get_input(input):
 
 
 def translate_youdao(text):
-    q = text
-    lang_from = 'auto'
-    lang_to = 'auto'
-
-    data = {'q': q, 'from': lang_from, 'to': lang_to}
-    yd_add_auth_params(api_config.YOUDAO_APP_ID, api_config.YOUDAO_APP_KEY, data)
-    header = {'content-type': 'application/x-www-form-urlencoded'}
-    try:
-        r = requests.post('https://openapi.youdao.com/api', data, header)
-        json_dict = json.loads(r.content)
-
-    except Exception as e:
-        print(e)
-        return
-
     translation = ""
     phonetic = ""
     explains = []
     web_results = []
+    json_dict = {}
+
+    via_api = True
+
+    if via_api:
+        q = text
+        lang_from = 'auto'
+        lang_to = 'auto'
+
+        data = {'q': q, 'from': lang_from, 'to': lang_to}
+        yd_add_auth_params(api_config.YOUDAO_APP_ID, api_config.YOUDAO_APP_KEY, data)
+        header = {'content-type': 'application/x-www-form-urlencoded'}
+        try:
+            r = requests.post('https://openapi.youdao.com/api', data, header)
+            json_dict = json.loads(r.content)
+
+        except Exception as e:
+            print(e)
+            return
+
+        try:
+            if 'translation' in json_dict:
+                translation = to_str(json_dict['translation'][0])
+            else:
+                translation = json_dict['web'][0]['value'][0]
+            if 'phonetic' in json_dict['basic']:
+                phonetic = to_str(json_dict['basic']['phonetic'])
+            if 'explains' in json_dict['basic']:
+                explains = json_dict['basic']['explains']
+            web_results = json_dict['web']
+        except:
+            pass
+
+    r = requests.get('http://mobile.youdao.com/dict?le=eng&q=' + text)
+    request_text = r.text
+    # print(request_text)
+    import re
+    phonetic_pattern = r'"phonetic">(.+)<\/span>'
     try:
-        if 'translation' in json_dict:
-            translation = to_str(json_dict['translation'][0])
-        else:
-            translation = json_dict['web'][0]['value'][0]
-        if 'phonetic' in json_dict['basic']:
-            phonetic = to_str(json_dict['basic']['phonetic'])
-        if 'explains' in json_dict['basic']:
-            explains = json_dict['basic']['explains']
-        web_results = json_dict['web']
+        phonetic = re.findall(phonetic_pattern, request_text)[-1].replace('[', '').replace(']', '')
     except:
         pass
+    explains_pattern = r'<li>(\w.+)<\/li>'
+    explains = re.findall(explains_pattern, request_text)
+    if not explains:
+        explains = re.findall(r'<a class="clickable".+>(.+)</a>', request_text)
+
+    if not translation and explains:
+        # print(explains[0])
+        translation = re.sub(r'（.*?）', '', explains[0].split('；')[0].split('，')[0].split('. ')[-1]).strip()
+
+    if not web_results:
+        r = requests.get('http://mobile.youdao.com/singledict?q=' + text + '&dict=web_trans&le=eng&more=false')
+        request_text = r.text
+        details = re.findall(r'pointer;">([\s\S]+?)\s</span>', request_text, re.DOTALL)
+        values = []
+        for i in range(len(details)):
+             value = details[i].replace('<span class="grey">', '').replace('</span>\r\n', '').replace(' ', '').replace(']', '] ').strip()
+             values.append(value)
+             # web_results.append({'key': text, 'value': [value]})
+        if values:
+            web_results.append({'key': text, 'value': values})
+
+        r = requests.get('http://mobile.youdao.com/singledict?q=' + text + '&dict=syno&le=eng&more=false')
+        request_text = r.text
+        details = re.findall(r'<a class="clickable" .+>(.+)<\/a>', request_text)
+        if details:
+            web_results.append({'key': text, 'value': details})
+        # print(web_results)
     return json_dict, translation, phonetic, explains, web_results
 
 
 def translate_deepl(text):
+    translation = ""
+    phonetic = ""
+    explains = []
+    web_results = []
+    json_dict = {}
+
+    via_api = True
+
     try:
-        via_api = True
         if is_chinese(text):
             target_lang = 'EN'
             source_lang = 'ZH'
@@ -211,7 +260,6 @@ def translate_deepl(text):
             target_lang = 'ZH'
             source_lang = 'EN'
         if via_api:
-            # Via API
             data = {'auth_key': api_config.DEEPL_AUTH_KEY, 'text': text, 'target_lang': target_lang}
             r = requests.post('https://api-free.deepl.com/v2/translate', data=data)
         else:
@@ -237,10 +285,6 @@ def translate_deepl(text):
         print(e)
         return
 
-    translation = ""
-    phonetic = ""
-    explains = []
-    web_results = []
     try:
         if via_api:
             translation = to_str(json_dict["translations"][0]["text"])
@@ -293,7 +337,7 @@ def translate(args, text):
         print(to_str(e))
     if args.verbose:
         try:
-            print("")
+            # print()
             for w in web_results:
                 key = to_str(w['key'])
                 value = ''
@@ -344,7 +388,8 @@ if __name__ == "__main__":
                         text = input()
                     if text != '':
                         translate(args, text)
-                        print('\n')
+                        print()
+                        # print('\n')
             except KeyboardInterrupt:
                 pass
             except EOFError:
