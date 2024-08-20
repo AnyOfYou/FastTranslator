@@ -297,19 +297,7 @@ def translate_deepl(text):
     return json_dict, translation, phonetic, explains, web_results
 
 
-def translate(args, text):
-    if args.only_say:
-        os.popen('say ' + '"' + text + '"')
-        return
-
-    if args.src == 'youdao':
-        result = translate_youdao(text)
-    elif args.src == 'deepl':
-        result = translate_deepl(text)
-    else:
-        print("Src Error")
-        return
-
+def print_result(args, text, result):
     if not result or not result[1]:
         print("Error")
         print("Result: ")
@@ -354,6 +342,30 @@ def translate(args, text):
         say_result(text, translation)
 
 
+def translate(args, text):
+    if args.only_say:
+        os.popen('say ' + '"' + text + '"')
+        return
+
+    if args.src == 'youdao':
+        result = translate_youdao(text)
+        print_result(args, text, result)
+    elif args.src == 'deepl':
+        result = translate_deepl(text)
+        print_result(args, text, result)
+    elif args.src == 'all':
+        print('---')
+        result = translate_youdao(text)
+        print_result(args, text, result)
+        print('-')
+        result = translate_deepl(text)
+        print_result(args, text, result)
+        print('---')
+    else:
+        print("Src Error")
+        return
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Fast Translator')
     parser.add_argument('-c', "--copy", help="copy translate result to clipboard", action="store_true")
@@ -364,7 +376,7 @@ if __name__ == "__main__":
     parser.add_argument('-v', "--verbose", help="verbose output", action="store_true")
     parser.add_argument('-s', "--say", help="say the result", action="store_true")
     parser.add_argument('-o', "--only-say", help="only say the word", action="store_true")
-    parser.add_argument('-r', "--src", help="translate source", default="youdao", choices=["youdao", "deepl"])
+    parser.add_argument('-r', "--src", help="translate source", default="youdao", choices=["youdao", "deepl", "all"])
     parser.add_argument("text", help="translated words, empty to enter interactive mode", nargs='*')
     args = parser.parse_args()
 
