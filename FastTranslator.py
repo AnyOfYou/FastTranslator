@@ -216,7 +216,7 @@ def translate_youdao(text):
     explains_pattern = r'<li>(\w.+)<\/li>'
     explains = re.findall(explains_pattern, request_text)
     if not explains:
-        explains = re.findall(r'<a class="clickable".+>(.+)</a>', request_text)
+        explains = re.findall(r'<a class="clickable".+>(.+[^:])</a>', request_text)
 
     if not translation and explains:
         # print(explains[0])
