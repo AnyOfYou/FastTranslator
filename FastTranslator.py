@@ -78,7 +78,7 @@ def is_chinese(uchar):
         uchar = str(uchar)
     else:
         uchar = unicode(uchar, "utf-8")
-    if u'\u4e00' <= uchar <= u'\u9fa5':
+    if u'\u4e00' <= uchar <= u'\u9fff':
         return True
     else:
         return False
