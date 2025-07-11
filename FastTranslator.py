@@ -194,7 +194,7 @@ def translate_youdao(text):
 
         try:
             if 'translation' in json_dict:
-                translation = to_str(json_dict['translation'][0])
+                translation = to_str(json_dict['translation'][0]).strip("\"")
             else:
                 translation = json_dict['web'][0]['value'][0]
             if 'phonetic' in json_dict['basic']:
