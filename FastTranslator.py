@@ -11,6 +11,7 @@ import hashlib
 import time
 import uuid
 import re
+import subprocess
 
 try:
     from StringIO import StringIO
@@ -128,9 +129,9 @@ def send_noti(title, message):
 
 def say_result(text, translation):
     if is_english(translation):
-        os.popen('say ' + '"' + translation + '"')
+        subprocess.Popen(['say', translation])
     elif is_english(text):
-        os.popen('say ' + '"' + text + '"')
+        subprocess.Popen(['say', text])
     else:
         pass
 
@@ -369,7 +370,7 @@ def translate(args, text):
     text = cleanup_text(text)
     # print(text)
     if args.only_say:
-        os.popen('say ' + '"' + text + '"')
+        subprocess.Popen(['say', text])
         return
 
     if args.src == 'youdao':
