@@ -196,6 +196,7 @@ def translate_youdao(text):
         try:
             if 'translation' in json_dict:
                 translation = to_str(json_dict['translation'][0])
+                translation = translation.strip('"').strip("'")
                 if translation.count('"') % 2 != 0:
                     # translation = translation.replace('"', '', 1)
                     translation = translation.replace('"', '')
