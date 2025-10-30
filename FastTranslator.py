@@ -318,7 +318,7 @@ def print_result(args, text, result):
         print('-' * 5)
 
     print_fg(translation, MAGENTA)
-    os.popen('echo ' + '"' + str(translation) + '"' + " > /tmp/FastTranslator.last")
+    os.popen('echo ' + '"' + str(translation) + '"' + " > /tmp/FastTranslator.last").close()
 
     if args.copy:
         copy_last_result(False)
